@@ -1,62 +1,96 @@
 import streamlit as st
 
-# Configure page title and header
-st.set_page_config(page_title="Roast My Homework", page_icon="🔥", layout="centered")
-st.title("🔥 Roast My Homework!")
+# Configure page layout
+st.set_page_config(page_title="Roast My Homework", page_icon="🤖", layout="centered")
+
+st.title("🤖 Roast My Homework!")
 st.caption("The sarcastic study buddy that roasts your draft before your teacher does.")
 
-# Input fields
-subject = st.selectbox("Select Subject", ["Science", "English", "History / Social Studies"])
-user_text = st.text_area("Paste your draft answer or essay below:", height=150)
+# Subject Topics Database for 8th-Grade Level
+DATABASE = {
+    "Science: Photosynthesis": {
+        "triggers": ["photosynthesis", "plant", "sun", "sunlight", "leaf", "chlorophyll"],
+        "roast": "You explained Photosynthesis like a plant written by a potato! Photosynthetic organisms don't just 'drink sun stuff'—they run a whole cellular factory.",
+        "keywords": ["Chlorophyll", "Glucose", "Carbon Dioxide", "Oxygen", "Light Energy"],
+        "model_answer": "Photosynthesis is the chemical process where plants use chlorophyll to absorb light energy, converting carbon dioxide and water into glucose and oxygen."
+    },
+    "Science: Archimedes' Principle & Density": {
+        "triggers": ["archimedes", "density", "upthrust", "buoyant", "floating", "water", "bathtub"],
+        "roast": "Floating along without a care in the world! You forgot the actual physics—Archimedes didn't run around naked yelling 'Eureka' just for you to skip the equations.",
+        "keywords": ["Upthrust / Buoyant Force", "Displaced Fluid", "Volume", "Density ($\rho = m/V$)", "Equilibrium"],
+        "model_answer": "Archimedes' principle states that any body completely or partially submerged in a fluid experience an upward buoyant force equal to the weight of the fluid displaced by the body."
+    },
+    "History: Causes of World War I": {
+        "triggers": ["war", "ww1", "franz", "ferdinand", "assassination", "alliance", "history"],
+        "roast": "Zero dates, zero treaties! Are we discussing World War I or drama in the cafeteria yesterday?",
+        "keywords": ["M.A.I.N. (Militarism, Alliances, Imperialism, Nationalism)", "Archduke Franz Ferdinand", "1914", "Triple Entente", "Central Powers"],
+        "model_answer": "The outbreak of World War I in 1914 was triggered by the assassination of Archduke Franz Ferdinand, stemming from long-term tensions in Militarism, Alliances, Imperialism, and Nationalism (M.A.I.N.)."
+    },
+    "English: Essay Analysis & Structure": {
+        "triggers": ["essay", "author", "character", "book", "story", "theme", "metaphor"],
+        "roast": "Your sentences are jumping around faster than a squirrel on caffeine! Where are your evidence quotes and transition words?",
+        "keywords": ["Thesis Statement", "Textual Evidence", "Tone", "Metaphor/Simile", "Furthermore / Consequently"],
+        "model_answer": "The author effectively highlights the central theme through vivid metaphors and character development, supporting the thesis statement with concrete textual evidence."
+    }
+}
 
-# Submit button logic
+# App Inputs
+subject_choice = st.selectbox("📌 Select Subject & Topic", list(DATABASE.keys()))
+user_text = st.text_area("✍️ Paste your draft answer or essay below:", height=140, placeholder="Type your answer draft here...")
+
+# Process Button
 if st.button("🔥 Roast & Review!"):
     if not user_text.strip():
-        st.warning("Please paste some draft text first!")
+        st.warning("Please type or paste an answer first!")
     else:
-        st.subheader("🔥 The Roast")
+        topic_data = DATABASE[subject_choice]
         text_lower = user_text.lower()
         word_count = len(user_text.split())
 
-        # 1. Length Check
-        if word_count < 10:
-            st.error("⚠️ Length Check: This isn't an answer, it's a text message! Did you run out of ink on your keyboard?")
-        elif word_count > 120:
-            st.error("📜 Length Check: Wow, an entire novel! Are you trying to wear out the teacher's eyes?")
+        st.markdown("---")
+        
+        # Section 1: The Dramatic Roast
+        st.subheader("🎭 1. The Roast")
+        
+        if word_count < 8:
+            st.error("⚠️ *Roast:* This isn't an answer, it's a text message! Did you run out of ink on your keyboard?")
         else:
-            st.success("✅ Length looking pretty good!")
+            st.error(f"🔥 *Roast:* {topic_data['roast']}")
 
-        # 2. Topic & Keyword Specific Roasts
-        if subject == "Science":
-            if "archimedes" in text_lower or "density" in text_lower or "upthrust" in text_lower:
-                st.warning("🧪 Science Vibe: Floating along fine, but where are Archimedes' actual calculations or buoyant force equations?")
-            elif "photosynthesis" in text_lower or "plant" in text_lower:
-                st.warning("🌱 Science Vibe: You mentioned plants, but you're missing key terms like chlorophyll, glucose, or light reactions!")
+        # Section 2: Missing Keywords Checklist
+        st.subheader("🎯 2. Missing Key Terms (8th-Grade Rubric)")
+        
+        found_keywords = []
+        missing_keywords = []
+
+        for kw in topic_data["keywords"]:
+            # Clean keyword for checking
+            clean_kw = kw.split("(")[0].strip().lower()
+            if clean_kw in text_lower:
+                found_keywords.append(kw)
             else:
-                st.info("🧪 Science Vibe: Needs more core scientific terms (e.g., cell, reaction, force, structure).")
+                missing_keywords.append(kw)
 
-        elif subject == "English":
-            if "because" not in text_lower and "therefore" not in text_lower:
-                st.warning("📖 English Vibe: Your sentences are jumping around! Add transition words like 'furthermore' or 'consequently'.")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("**✅ Included Terms:**")
+            if found_keywords:
+                for fk in found_keywords:
+                    st.write(f"- {fk}")
             else:
-                st.success("📖 English Vibe: Good sentence transitions used!")
+                st.write("*None detected yet!*")
 
-        elif subject == "History / Social Studies":
-            if not any(char.isdigit() for char in user_text):
-                st.warning("🏛️ History Vibe: Zero dates or years? Are we talking about ancient history or yesterday at lunch?")
+        with col2:
+            st.markdown("**❌ Missing Terms Needed:**")
+            if missing_keywords:
+                for mk in missing_keywords:
+                    st.write(f"- **{mk}**")
             else:
-                st.success("🏛️ History Vibe: Nice inclusion of specific dates or figures!")
+                st.write("🎉 *Awesome! You included all key terms!*")
 
-        # 3. Filler Word Check
-        filler_words = ["stuff", "things", "basically", "so yeah"]
-        if any(f in text_lower for f in filler_words):
-            st.error("💬 Vocabulary: Words like 'stuff' or 'things' belong on the playground, not in an exam paper!")
-
-        # Pre-Submission Checklist
-        st.divider()
-        st.subheader("📝 Pre-Submission Checklist")
-        st.checkbox("Fixed generic words (e.g., 'stuff' ➔ 'buoyancy / light energy')")
-        st.checkbox("Checked spelling & punctuation")
-        st.checkbox("Included at least 3 subject-specific key terms")
+        # Section 3: Suggested Model Answer
+        st.subheader("💡 3. Suggested Model Answer")
+        st.info(f"**How to upgrade for full marks:**\n\n\"{topic_data['model_answer']}\"")
 
         st.balloons()
+
